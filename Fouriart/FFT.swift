@@ -120,11 +120,8 @@ func FFT_pad(points: [CGPoint]) -> [CGPoint] {
         ideal_length *= 2
     }
     if ideal_length == points.count {
-        return points
+        return points + [points[points.count - 2]]
     }
-    
-    let closing_borders: [CGPoint] = [points[points.count - 2]] // last real point; used to determine what isn't drawn when the curve isn't closed
-    
     var newPoints = points
     while newPoints.count < ideal_length {
         var largest: [Double] = [0.0, 0.0]
@@ -138,7 +135,7 @@ func FFT_pad(points: [CGPoint]) -> [CGPoint] {
         let midpoint: CGPoint = CGPoint(x: 0.5 * (p1.x + p2.x), y: 0.5 * (p1.y + p2.y))
         newPoints.insert(midpoint, at: Int(largest[1] + 1))
     }
-    return newPoints + closing_borders
+    return newPoints + [points[points.count - 2]]
     }
 //func FFT_pad(points: [CGPoint]) -> [CGPoint] {
 //    var length: Float = 0
