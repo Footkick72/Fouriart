@@ -35,7 +35,8 @@ struct CanvasView: View {
         Slider(value: $selectedCurveResolution, in: 0...100)
             .frame(alignment: .top)
             .padding()
-            .disabled(!selectionActive)
+            .disabled(selectedCurveIndex == nil)
+            .id(selectedCurveIndex == nil)
             .onChange(of: selectedCurveResolution) {_ in
                 if let selectedCurveIndex = selectedCurveIndex {
                     
