@@ -12,9 +12,9 @@ import Accelerate
 
 struct CanvasView: View {
     @State var canvas = PKCanvasView()
-//    @State var toolpicker = PKToolPicker()
     @State var selectedCurveResolution: CGFloat = 50
     @State var selectedCurveIndex: Int? = nil
+    @State var selectedCurve: PKStroke? = nil
     @State var selectionActive = false
     
     @State var curveData: [[CGPoint]] = []
@@ -27,6 +27,7 @@ struct CanvasView: View {
             if selectionActive {
                 selectionActive = false
                 selectedCurveIndex = nil
+                selectedCurve = nil
             }
             else {
                 selectionActive = true
@@ -103,84 +104,93 @@ struct CanvasView: View {
                     newStroke.transform = canvas.drawing.strokes[selectedCurveIndex].transform
                     
                     canvas.drawing.strokes[selectedCurveIndex] = newStroke
+                    selectedCurve = canvas.drawing.strokes[selectedCurveIndex]
                 }
             }
-        
-        Canvas(canvasView: $canvas, onSaved: { // this entire logic chain depends on the fact that the PKCanvas never recieves any direct updates other than drawing strokes
-            if curveData.count < canvas.drawing.strokes.count {
-                let original = canvas.drawing.strokes.last!
-                
-                var points: [CGPoint] = []
-                for point in original.path {
-                    points.append(point.location)
-                }
-                points.append(points[0])
-                print(points.count)
-                print(points)
-                
-                var padded = FFT_pad(points: points)
-                let beginNotDraw = padded.popLast()!
-                print(padded.count)
-                print(padded)
-                curveData.append(padded)
-                
-                let toDraw = padded.dropLast(padded.count - padded.firstIndex(of: beginNotDraw)! - 1)
-                print(toDraw.count)
-                print(toDraw)
-                
-                var newPoints: [PKStrokePoint] = []
-                var lastOriginal: PKStrokePoint? = nil
-                for i in 0..<toDraw.count {
-                    if let originalIndex = original.path.firstIndex(where: {point in
-                        toDraw.firstIndex(of: point.location) != nil && toDraw.firstIndex(of: point.location)! > i
-                    }) {
-                        lastOriginal = original.path[originalIndex]
+        ZStack {
+            Canvas(canvasView: $canvas, onSaved: { // this entire logic chain depends on the fact that the PKCanvas never recieves any direct updates other than drawing strokes
+                if curveData.count < canvas.drawing.strokes.count {
+                    let original = canvas.drawing.strokes.last!
+                    
+                    var points: [CGPoint] = []
+                    for point in original.path {
+                        points.append(point.location)
                     }
-                    newPoints.append(PKStrokePoint(location: padded[i],
-                                                   timeOffset: lastOriginal!.timeOffset,
-                                                   size: lastOriginal!.size,
-                                                   opacity: lastOriginal!.opacity,
-                                                   force: lastOriginal!.force,
-                                                   azimuth: lastOriginal!.azimuth,
-                                                   altitude: lastOriginal!.altitude))
+                    points.append(points[0])
+                    
+                    var padded = FFT_pad(points: points)
+                    let beginNotDraw = padded.popLast()!
+                    var p: [CGPoint] = []
+                    for point in padded {
+                        p.append(point.0)
+                    }
+                    curveData.append(p)
+                    
+                    var beginNotDrawIndex = 0
+                    for i in 0..<padded.count {
+                        if padded[i].0 == beginNotDraw.0 {
+                            beginNotDrawIndex = i
+                            break
+                        }
+                    }
+                    let toDraw = padded.dropLast(padded.count - beginNotDrawIndex - 1)
+                    
+                    var newPoints: [PKStrokePoint] = []
+                    var lastOriginal: PKStrokePoint = original.path.first!
+                    for draw in toDraw {
+                        if draw.1 {
+                            for i in 0..<original.path.count {
+                                if original.path[i].location == draw.0 {
+                                    lastOriginal = original.path[i]
+                                    break
+                                }
+                            }
+                        }
+                        newPoints.append(PKStrokePoint(location: draw.0,
+                                                       timeOffset: lastOriginal.timeOffset,
+                                                       size: lastOriginal.size,
+                                                       opacity: lastOriginal.opacity,
+                                                       force: lastOriginal.force,
+                                                       azimuth: lastOriginal.azimuth,
+                                                       altitude: lastOriginal.altitude))
+                    }
+                    let old = canvas.drawing.strokes.popLast()!
+                    canvas.drawing.strokes.append(PKStroke(ink: old.ink, path: PKStrokePath(controlPoints: newPoints, creationDate: Date())))
+                    
+                    let size = Int(log2(Float(padded.count)))
+                    if setup_size < size {
+                        setup_size = size
+                        setup = vDSP_create_fftsetup(vDSP_Length(size), FFTRadix(kFFTRadix2))!
+                    }
                 }
-                let old = canvas.drawing.strokes.popLast()!
-                canvas.drawing.strokes.append(PKStroke(ink: old.ink, path: PKStrokePath(controlPoints: newPoints, creationDate: Date())))
-                
-                let size = Int(log2(Float(padded.count)))
-                if setup_size < size {
-                    setup_size = size
-                    setup = vDSP_create_fftsetup(vDSP_Length(size), FFTRadix(kFFTRadix2))!
-                }
-            }
-        })
-//            .onAppear() {
-//                toolpicker.setVisible(true, forFirstResponder: canvas)
-//                toolpicker.addObserver(canvas)
-//                canvas.becomeFirstResponder()
-//            }
+            })
             .border(Color.black)
-            .overlay(
-                Rectangle()
-                    .opacity(selectionActive ? 0.001 : 0) // makes selection code active by setting opacity of rectangle overlay to nonzero value
-                    .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .local)
-                                .onEnded({ data in
-                                    var minDist: [CGFloat] = [1000000, -1]
-                                    for (ci, curve) in canvas.drawing.strokes.enumerated() {
-                                        for point in curve.path {
-                                            let d: CGFloat = sqrt(pow(point.location.x - data.location.x, 2) + pow(point.location.y - data.location.y, 2))
-                                            if d < minDist[0] {
-                                                minDist = [d, CGFloat(ci)]
-                                            }
+            
+            PathSelectionIndicator(path: $selectedCurve)
+                .opacity(selectedCurveIndex != nil ? 1.0 : 0.0)
+            
+            Rectangle()
+                .opacity(selectionActive ? 0.001 : 0) // makes selection code active by setting opacity of rectangle overlay to nonzero value
+                .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .local)
+                            .onEnded({ data in
+                                var minDist: [CGFloat] = [1000000, -1]
+                                for (ci, curve) in canvas.drawing.strokes.enumerated() {
+                                    for point in curve.path {
+                                        let d: CGFloat = sqrt(pow(point.location.x - data.location.x, 2) + pow(point.location.y - data.location.y, 2))
+                                        if d < minDist[0] {
+                                            minDist = [d, CGFloat(ci)]
                                         }
                                     }
-                                    if minDist[1] != -1 {
-                                        selectedCurveIndex = Int(minDist[1])
-                                    } else {
-                                        selectedCurveIndex = nil
-                                    }
-                                }))
-            )
+                                }
+                                if minDist[1] != -1 {
+                                    selectedCurveIndex = Int(minDist[1])
+                                    selectedCurve = canvas.drawing.strokes[selectedCurveIndex!]
+                                } else {
+                                    selectedCurveIndex = nil
+                                    selectedCurve = nil
+                                }
+                            }))
+        }
             
     }
 }

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1A05D7BA26F16B4D00976060 /* FFT.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A05D7B926F16B4D00976060 /* FFT.swift */; };
+		1A05D7BC26F78FC200976060 /* PathSelectionIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A05D7BB26F78FC200976060 /* PathSelectionIndicator.swift */; };
 		1A2C8CE826EE78A30015742A /* FouriartApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2C8CE726EE78A30015742A /* FouriartApp.swift */; };
 		1A2C8CEA26EE78A30015742A /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2C8CE926EE78A30015742A /* ContentView.swift */; };
 		1A2C8CEC26EE78A40015742A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1A2C8CEB26EE78A40015742A /* Assets.xcassets */; };
@@ -17,6 +18,7 @@
 
 /* Begin PBXFileReference section */
 		1A05D7B926F16B4D00976060 /* FFT.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFT.swift; sourceTree = "<group>"; };
+		1A05D7BB26F78FC200976060 /* PathSelectionIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathSelectionIndicator.swift; sourceTree = "<group>"; };
 		1A2C8CE426EE78A30015742A /* Fouriart.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Fouriart.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A2C8CE726EE78A30015742A /* FouriartApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FouriartApp.swift; sourceTree = "<group>"; };
 		1A2C8CE926EE78A30015742A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -59,6 +61,7 @@
 				1A2C8CE726EE78A30015742A /* FouriartApp.swift */,
 				1A2C8CE926EE78A30015742A /* ContentView.swift */,
 				1A2C8CF626EE7AC80015742A /* CanvasView.swift */,
+				1A05D7BB26F78FC200976060 /* PathSelectionIndicator.swift */,
 				1A05D7B926F16B4D00976060 /* FFT.swift */,
 				1A2C8CEB26EE78A40015742A /* Assets.xcassets */,
 				1A2C8CF026EE78A40015742A /* Info.plist */,
@@ -145,6 +148,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1A05D7BA26F16B4D00976060 /* FFT.swift in Sources */,
+				1A05D7BC26F78FC200976060 /* PathSelectionIndicator.swift in Sources */,
 				1A2C8CEA26EE78A30015742A /* ContentView.swift in Sources */,
 				1A2C8CE826EE78A30015742A /* FouriartApp.swift in Sources */,
 				1A2C8CF726EE7AC80015742A /* CanvasView.swift in Sources */,
