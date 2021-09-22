@@ -14,6 +14,7 @@
 		1A2C8CEC26EE78A40015742A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1A2C8CEB26EE78A40015742A /* Assets.xcassets */; };
 		1A2C8CEF26EE78A40015742A /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1A2C8CEE26EE78A40015742A /* Preview Assets.xcassets */; };
 		1A2C8CF726EE7AC80015742A /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A2C8CF626EE7AC80015742A /* CanvasView.swift */; };
+		1A5F102726FAC4EA00C8F32D /* FFTPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A5F102626FAC4EA00C8F32D /* FFTPath.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +27,7 @@
 		1A2C8CEE26EE78A40015742A /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		1A2C8CF026EE78A40015742A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		1A2C8CF626EE7AC80015742A /* CanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasView.swift; sourceTree = "<group>"; };
+		1A5F102626FAC4EA00C8F32D /* FFTPath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFTPath.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,6 +63,7 @@
 				1A2C8CE726EE78A30015742A /* FouriartApp.swift */,
 				1A2C8CE926EE78A30015742A /* ContentView.swift */,
 				1A2C8CF626EE7AC80015742A /* CanvasView.swift */,
+				1A5F102626FAC4EA00C8F32D /* FFTPath.swift */,
 				1A05D7BB26F78FC200976060 /* PathSelectionIndicator.swift */,
 				1A05D7B926F16B4D00976060 /* FFT.swift */,
 				1A2C8CEB26EE78A40015742A /* Assets.xcassets */,
@@ -148,6 +151,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1A05D7BA26F16B4D00976060 /* FFT.swift in Sources */,
+				1A5F102726FAC4EA00C8F32D /* FFTPath.swift in Sources */,
 				1A05D7BC26F78FC200976060 /* PathSelectionIndicator.swift in Sources */,
 				1A2C8CEA26EE78A30015742A /* ContentView.swift in Sources */,
 				1A2C8CE826EE78A30015742A /* FouriartApp.swift in Sources */,

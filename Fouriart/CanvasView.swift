@@ -17,8 +17,6 @@ struct CanvasView: View {
     @State var selectedCurve: PKStroke? = nil
     @State var selectionActive = false
     
-    @State var curveData: [[CGPoint]] = []
-    
     @State var setup = vDSP_create_fftsetup(1, FFTRadix(kFFTRadix2))!
     @State var setup_size = 1
     
@@ -40,27 +38,28 @@ struct CanvasView: View {
             .id(selectedCurveIndex == nil)
             .onChange(of: selectedCurveResolution) {_ in
                 if let selectedCurveIndex = selectedCurveIndex {
+                    curveData[selectedCurveIndex].precision = Float(selectedCurveResolution/100)
                     
                     var real: [Float] = []
                     var complex: [Float] = []
-                    for point in curveData[selectedCurveIndex] {
+                    for point in curveData[selectedCurveIndex].data {
                         real.append(Float(point.x))
                         complex.append(Float(point.y))
                     }
                     
                     var splitComplex: DSPSplitComplex = DSPSplitComplex(realp: UnsafeMutablePointer(mutating: real), imagp: UnsafeMutablePointer(mutating: complex))
-                    vDSP_fft_zip(setup, &splitComplex, 1, vDSP_Length(log2(Float(curveData[selectedCurveIndex].count))), FFTDirection(kFFTDirection_Forward))
+                    vDSP_fft_zip(setup, &splitComplex, 1, vDSP_Length(log2(Float(curveData[selectedCurveIndex].data.count))), FFTDirection(kFFTDirection_Forward))
                     
-                    real = Array(UnsafeBufferPointer(start: splitComplex.realp, count: curveData[selectedCurveIndex].count))
-                    complex = Array(UnsafeBufferPointer(start: splitComplex.imagp, count: curveData[selectedCurveIndex].count))
+                    real = Array(UnsafeBufferPointer(start: splitComplex.realp, count: curveData[selectedCurveIndex].data.count))
+                    complex = Array(UnsafeBufferPointer(start: splitComplex.imagp, count: curveData[selectedCurveIndex].data.count))
                     
                     var count = 0
-                    let indecies: [Int] = Array(0..<real.count)
-                    for i in indecies.sorted(by: {a,b in
+                    let indicies: [Int] = Array(0..<real.count)
+                    for i in indicies.sorted(by: {a,b in
                         return sqrt(pow(real[a],2) + pow(complex[a],2)) < sqrt(pow(real[b],2) + pow(complex[b],2))
                     }) {
-                        if count + 1 >= real.count - Int(Float(selectedCurveResolution)/100 * Float(curveData[selectedCurveIndex].count) + 2) {
-                            let r = Float(selectedCurveResolution)/100 * Float(curveData[selectedCurveIndex].count) + 2
+                        if count + 1 >= real.count - Int(curveData[selectedCurveIndex].getCoeffsToDelete()) {
+                            let r = curveData[selectedCurveIndex].getCoeffsToDelete()
                             real[i] *= r - floor(r)
                             complex[i] *= r - floor(r)
                             break
@@ -71,14 +70,14 @@ struct CanvasView: View {
                     }
                     
                     splitComplex = DSPSplitComplex(realp: UnsafeMutablePointer(mutating: real), imagp: UnsafeMutablePointer(mutating: complex))
-                    vDSP_fft_zip(setup, &splitComplex, 1, vDSP_Length(log2(Float(curveData[selectedCurveIndex].count))), FFTDirection(kFFTDirection_Inverse))
+                    vDSP_fft_zip(setup, &splitComplex, 1, vDSP_Length(log2(Float(curveData[selectedCurveIndex].data.count))), FFTDirection(kFFTDirection_Inverse))
                     
-                    real = Array(UnsafeBufferPointer(start: splitComplex.realp, count: curveData[selectedCurveIndex].count))
-                    complex = Array(UnsafeBufferPointer(start: splitComplex.imagp, count: curveData[selectedCurveIndex].count))
+                    real = Array(UnsafeBufferPointer(start: splitComplex.realp, count: curveData[selectedCurveIndex].data.count))
+                    complex = Array(UnsafeBufferPointer(start: splitComplex.imagp, count: curveData[selectedCurveIndex].data.count))
                     
                     var points: [CGPoint] = []
                     for i in 0..<real.count {
-                        points.append(CGPoint(x: Double(real[i]/Float(curveData[selectedCurveIndex].count)), y: Double(complex[i]/Float(curveData[selectedCurveIndex].count))))
+                        points.append(CGPoint(x: Double(real[i]/Float(curveData[selectedCurveIndex].data.count)), y: Double(complex[i]/Float(curveData[selectedCurveIndex].data.count))))
                     }
                     
                     var newPoints = [PKStrokePoint]()
@@ -118,7 +117,7 @@ struct CanvasView: View {
                     for point in padded {
                         p.append(point.0)
                     }
-                    curveData.append(p)
+                    curveData.append(FFTPath(data: p, precision: 1.0))
                     
                     var beginNotDrawIndex = 0
                     for i in 0..<padded.count {
@@ -179,6 +178,7 @@ struct CanvasView: View {
                                 if minDist[1] != -1 {
                                     selectedCurveIndex = Int(minDist[1])
                                     selectedCurve = canvas.drawing.strokes[selectedCurveIndex!]
+                                    selectedCurveResolution = CGFloat(curveData[selectedCurveIndex!].precision * 100)
                                 } else {
                                     selectedCurveIndex = nil
                                     selectedCurve = nil
