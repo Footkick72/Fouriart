@@ -54,26 +54,20 @@ struct CanvasView: View {
                     real = Array(UnsafeBufferPointer(start: splitComplex.realp, count: curveData[selectedCurveIndex].count))
                     complex = Array(UnsafeBufferPointer(start: splitComplex.imagp, count: curveData[selectedCurveIndex].count))
                     
-                    var rcount = 0
-                    for r in real.sorted(by: {a, b in
-                        return abs(a) < abs(b)
+                    var count = 0
+                    let indecies: [Int] = Array(0..<real.count)
+                    for i in indecies.sorted(by: {a,b in
+                        return sqrt(pow(real[a],2) + pow(complex[a],2)) < sqrt(pow(real[b],2) + pow(complex[b],2))
                     }) {
-                        real[real.firstIndex(of: r)!] = 0
-                        rcount += 1
-                        if rcount >= real.count - Int(Float(selectedCurveResolution)/100 * Float(curveData[selectedCurveIndex].count)) {
+                        if count + 1 >= real.count - Int(Float(selectedCurveResolution)/100 * Float(curveData[selectedCurveIndex].count) + 2) {
+                            let r = Float(selectedCurveResolution)/100 * Float(curveData[selectedCurveIndex].count) + 2
+                            real[i] *= r - floor(r)
+                            complex[i] *= r - floor(r)
                             break
                         }
-                    }
-                    
-                    var ccount = 0
-                    for c in complex.sorted(by: {a, b in
-                        return abs(a) < abs(b)
-                    }) {
-                        complex[complex.firstIndex(of: c)!] = 0
-                        ccount += 1
-                        if ccount >= complex.count - Int(Float(selectedCurveResolution)/100 * Float(curveData[selectedCurveIndex].count)) {
-                            break
-                        }
+                        real[i] = 0
+                        complex[i] = 0
+                        count += 1
                     }
                     
                     splitComplex = DSPSplitComplex(realp: UnsafeMutablePointer(mutating: real), imagp: UnsafeMutablePointer(mutating: complex))
