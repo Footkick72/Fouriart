@@ -27,7 +27,7 @@ struct CanvasView: View {
             }
             .onAppear {
                 for stroke in curveData.data[curveData.currentDrawing!].paths {
-                    
+                    canvas.drawing.strokes.append(stroke.getDrawablePath())
                 }
             }
             Button("Edit Curves") {
