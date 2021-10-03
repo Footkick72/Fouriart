@@ -21,14 +21,24 @@ struct CanvasView: View {
     @State var setup_size = 1
     
     var body: some View {
-        Button("Edit Curves") {
-            if selectionActive {
-                selectionActive = false
-                selectedCurveIndex = nil
-                selectedCurve = nil
+        HStack {
+            Button("Close Drawing") {
+                curveData.unselectDrawing()
             }
-            else {
-                selectionActive = true
+            .onAppear {
+                for stroke in curveData.data[curveData.currentDrawing!].paths {
+                    
+                }
+            }
+            Button("Edit Curves") {
+                if selectionActive {
+                    selectionActive = false
+                    selectedCurveIndex = nil
+                    selectedCurve = nil
+                }
+                else {
+                    selectionActive = true
+                }
             }
         }
         Slider(value: $selectedCurveResolution, in: 0...100)
@@ -38,123 +48,20 @@ struct CanvasView: View {
             .id(selectedCurveIndex == nil)
             .onChange(of: selectedCurveResolution) {_ in
                 if let selectedCurveIndex = selectedCurveIndex {
-                    curveData[selectedCurveIndex].precision = Float(selectedCurveResolution/100)
-                    
-                    var real: [Float] = []
-                    var complex: [Float] = []
-                    for point in curveData[selectedCurveIndex].data {
-                        real.append(Float(point.x))
-                        complex.append(Float(point.y))
-                    }
-                    
-                    var splitComplex: DSPSplitComplex = DSPSplitComplex(realp: UnsafeMutablePointer(mutating: real), imagp: UnsafeMutablePointer(mutating: complex))
-                    vDSP_fft_zip(setup, &splitComplex, 1, vDSP_Length(log2(Float(curveData[selectedCurveIndex].data.count))), FFTDirection(kFFTDirection_Forward))
-                    
-                    real = Array(UnsafeBufferPointer(start: splitComplex.realp, count: curveData[selectedCurveIndex].data.count))
-                    complex = Array(UnsafeBufferPointer(start: splitComplex.imagp, count: curveData[selectedCurveIndex].data.count))
-                    
-                    var count = 0
-                    let indicies: [Int] = Array(0..<real.count)
-                    for i in indicies.sorted(by: {a,b in
-                        return sqrt(pow(real[a],2) + pow(complex[a],2)) < sqrt(pow(real[b],2) + pow(complex[b],2))
-                    }) {
-                        if count + 1 >= real.count - Int(curveData[selectedCurveIndex].getCoeffsToDelete()) {
-                            let r = curveData[selectedCurveIndex].getCoeffsToDelete()
-                            real[i] *= r - floor(r)
-                            complex[i] *= r - floor(r)
-                            break
-                        }
-                        real[i] = 0
-                        complex[i] = 0
-                        count += 1
-                    }
-                    
-                    splitComplex = DSPSplitComplex(realp: UnsafeMutablePointer(mutating: real), imagp: UnsafeMutablePointer(mutating: complex))
-                    vDSP_fft_zip(setup, &splitComplex, 1, vDSP_Length(log2(Float(curveData[selectedCurveIndex].data.count))), FFTDirection(kFFTDirection_Inverse))
-                    
-                    real = Array(UnsafeBufferPointer(start: splitComplex.realp, count: curveData[selectedCurveIndex].data.count))
-                    complex = Array(UnsafeBufferPointer(start: splitComplex.imagp, count: curveData[selectedCurveIndex].data.count))
-                    
-                    var points: [CGPoint] = []
-                    for i in 0..<real.count {
-                        points.append(CGPoint(x: Double(real[i]/Float(curveData[selectedCurveIndex].data.count)), y: Double(complex[i]/Float(curveData[selectedCurveIndex].data.count))))
-                    }
-                    
-                    var newPoints = [PKStrokePoint]()
-                    for i in 0..<canvas.drawing.strokes[selectedCurveIndex].path.count {
-                        let point = canvas.drawing.strokes[selectedCurveIndex].path[i]
-                        let newPoint = PKStrokePoint(location: points[i],
-                                                     timeOffset: point.timeOffset,
-                                                     size: point.size,
-                                                     opacity: point.opacity,
-                                                     force: point.force,
-                                                     azimuth: point.azimuth,
-                                                     altitude: point.altitude)
-                        newPoints.append(newPoint)
-                    }
-                    let newPath = PKStrokePath(controlPoints: newPoints, creationDate: Date())
-                    var newStroke = PKStroke(ink: canvas.drawing.strokes[selectedCurveIndex].ink, path: newPath)
-                    newStroke.transform = canvas.drawing.strokes[selectedCurveIndex].transform
-                    
-                    canvas.drawing.strokes[selectedCurveIndex] = newStroke
+                    curveData.data[curveData.currentDrawing!].paths[selectedCurveIndex].precision = Float(selectedCurveResolution)/100
+                    canvas.drawing.strokes[selectedCurveIndex] = curveData.data[curveData.currentDrawing!].paths[selectedCurveIndex].getDrawablePath()
                     selectedCurve = canvas.drawing.strokes[selectedCurveIndex]
                 }
             }
         ZStack {
             Canvas(canvasView: $canvas, onSaved: { // this entire logic chain depends on the fact that the PKCanvas never recieves any direct updates other than drawing strokes
-                if curveData.count < canvas.drawing.strokes.count {
+                if curveData.data[curveData.currentDrawing!].paths.count < canvas.drawing.strokes.count {
                     let original = canvas.drawing.strokes.last!
                     
-                    var points: [CGPoint] = []
-                    for point in original.path {
-                        points.append(point.location)
-                    }
-                    points.append(points[0])
+                    curveData.data[curveData.currentDrawing!].paths.append(FFTPath(original: original))
                     
-                    var padded = FFT_pad(points: points)
-                    let beginNotDraw = padded.popLast()!
-                    var p: [CGPoint] = []
-                    for point in padded {
-                        p.append(point.0)
-                    }
-                    curveData.append(FFTPath(data: p, precision: 1.0))
-                    
-                    var beginNotDrawIndex = 0
-                    for i in 0..<padded.count {
-                        if padded[i].0 == beginNotDraw.0 {
-                            beginNotDrawIndex = i
-                            break
-                        }
-                    }
-                    let toDraw = padded.dropLast(padded.count - beginNotDrawIndex - 1)
-                    
-                    var newPoints: [PKStrokePoint] = []
-                    var lastOriginal: PKStrokePoint = original.path.first!
-                    for draw in toDraw {
-                        if draw.1 {
-                            for i in 0..<original.path.count {
-                                if original.path[i].location == draw.0 {
-                                    lastOriginal = original.path[i]
-                                    break
-                                }
-                            }
-                        }
-                        newPoints.append(PKStrokePoint(location: draw.0,
-                                                       timeOffset: lastOriginal.timeOffset,
-                                                       size: lastOriginal.size,
-                                                       opacity: lastOriginal.opacity,
-                                                       force: lastOriginal.force,
-                                                       azimuth: lastOriginal.azimuth,
-                                                       altitude: lastOriginal.altitude))
-                    }
-                    let old = canvas.drawing.strokes.popLast()!
-                    canvas.drawing.strokes.append(PKStroke(ink: old.ink, path: PKStrokePath(controlPoints: newPoints, creationDate: Date())))
-                    
-                    let size = Int(log2(Float(padded.count)))
-                    if setup_size < size {
-                        setup_size = size
-                        setup = vDSP_create_fftsetup(vDSP_Length(size), FFTRadix(kFFTRadix2))!
-                    }
+                    canvas.drawing.strokes.removeLast()
+                    canvas.drawing.strokes.append(curveData.data[curveData.currentDrawing!].paths.last!.getDrawablePath())
                 }
             })
             .border(Color.black)
@@ -178,7 +85,7 @@ struct CanvasView: View {
                                 if minDist[1] != -1 {
                                     selectedCurveIndex = Int(minDist[1])
                                     selectedCurve = canvas.drawing.strokes[selectedCurveIndex!]
-                                    selectedCurveResolution = CGFloat(curveData[selectedCurveIndex!].precision * 100)
+                                    selectedCurveResolution = CGFloat(curveData.data[curveData.currentDrawing!].paths[selectedCurveIndex!].precision * 100)
                                 } else {
                                     selectedCurveIndex = nil
                                     selectedCurve = nil

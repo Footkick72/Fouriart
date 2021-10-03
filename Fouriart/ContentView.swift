@@ -7,16 +7,22 @@
 
 import SwiftUI
 
+
 struct ContentView: View {
+    @ObservedObject var curves = curveData
+    
     var body: some View {
-        CanvasView()
-//            .border(Color.black, width: 2)
-//            .padding()
+        if curves.currentDrawing != nil {
+            CanvasView()
+        }
+        else {
+            MenuView()
+        }
     }
 }
 
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
-    }
-}
+//struct ContentView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        ContentView()
+//    }
+//}
