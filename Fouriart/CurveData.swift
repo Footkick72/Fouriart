@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 
 var curveData = CurveData()
+fileprivate let savePath = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first!.appendingPathComponent("drawings")
 
 class CurveData: Codable, ObservableObject {
     var data: [FFTDrawing] = []
@@ -27,6 +28,27 @@ class CurveData: Codable, ObservableObject {
     
     func unselectDrawing() {
         currentDrawing = nil
+        save()
         objectWillChange.send()
+    }
+    
+    func save() {
+        let data = try! JSONEncoder().encode(self)
+        if !FileManager.default.fileExists(atPath: savePath.absoluteString) {
+            FileManager.default.createFile(atPath: savePath.absoluteString, contents: Data())
+        }
+        try! data.write(to: savePath)
+    }
+    
+    func load() {
+        do {
+            let data = try Data(contentsOf: savePath)
+            let loaded = try! JSONDecoder().decode(CurveData.self, from: data)
+            self.data = loaded.data
+            self.currentDrawing = loaded.currentDrawing
+        } catch {
+            print(error)
+            return // no saved data exists
+        }
     }
 }
