@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 import PencilKit
 import Accelerate
+import Photos
 
 struct CanvasView: View {
     @State var canvas = PKCanvasView()
@@ -16,6 +17,8 @@ struct CanvasView: View {
     @State var selectedCurveIndex: Int? = nil
     @State var selectedCurve: PKStroke? = nil
     @State var selectionActive = false
+    
+    @State var showingPhotosPermissionAlert = false
     
     @State var setup = vDSP_create_fftsetup(1, FFTRadix(kFFTRadix2))!
     @State var setup_size = 1
@@ -39,6 +42,17 @@ struct CanvasView: View {
                 else {
                     selectionActive = true
                 }
+            }
+            Button("Save to Photos") {
+                PHPhotoLibrary.requestAuthorization(for: .readWrite, handler: { _ in return })
+                if PHPhotoLibrary.checkPhotoSavePermission() {
+                    curveData.data[curveData.currentDrawing!].saveToPhotos(rect: canvas.bounds)
+                } else {
+                    showingPhotosPermissionAlert = true
+                }
+            }
+            .alert(isPresented: $showingPhotosPermissionAlert) {
+                Alert(title: Text("Unable to Save"), message: Text("Fouriart does not have permission to save photos to the camera roll"), dismissButton: .default(Text("OK")))
             }
         }
         Slider(value: $selectedCurveResolution, in: 0...100)
