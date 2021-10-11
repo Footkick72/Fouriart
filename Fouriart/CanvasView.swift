@@ -19,10 +19,7 @@ struct CanvasView: View {
     @State var selectionActive = false
     
     @State var showingPhotosPermissionAlert = false
-    
-    @State var setup = vDSP_create_fftsetup(1, FFTRadix(kFFTRadix2))!
-    @State var setup_size = 1
-    
+
     var body: some View {
         HStack {
             Button("Close Drawing") {
@@ -67,44 +64,50 @@ struct CanvasView: View {
                     selectedCurve = canvas.drawing.strokes[selectedCurveIndex]
                 }
             }
-        ZStack {
-            Canvas(canvasView: $canvas, onSaved: { // this entire logic chain depends on the fact that the PKCanvas never recieves any direct updates other than drawing strokes
-                if curveData.data[curveData.currentDrawing!].paths.count < canvas.drawing.strokes.count {
-                    let original = canvas.drawing.strokes.last!
-                    
-                    curveData.data[curveData.currentDrawing!].paths.append(FFTPath(original: original))
-                    
-                    canvas.drawing.strokes.removeLast()
-                    canvas.drawing.strokes.append(curveData.data[curveData.currentDrawing!].paths.last!.getDrawablePath())
-                }
-            })
-            .border(Color.black)
-            
-            PathSelectionIndicator(path: $selectedCurve)
-                .opacity(selectedCurveIndex != nil ? 1.0 : 0.0)
-            
-            Rectangle()
-                .opacity(selectionActive ? 0.001 : 0) // makes selection code active by setting opacity of rectangle overlay to nonzero value
-                .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .local)
-                            .onEnded({ data in
-                                var minDist: [CGFloat] = [1000000, -1]
-                                for (ci, curve) in canvas.drawing.strokes.enumerated() {
-                                    for point in curve.path {
-                                        let d: CGFloat = sqrt(pow(point.location.x - data.location.x, 2) + pow(point.location.y - data.location.y, 2))
-                                        if d < minDist[0] {
-                                            minDist = [d, CGFloat(ci)]
-                                        }
-                                    }
+        HStack{
+            ZStack {
+                Canvas(canvasView: $canvas, onSaved: { // this entire logic chain depends on the fact that the PKCanvas never recieves any direct updates other than drawing strokes
+                    if curveData.data[curveData.currentDrawing!].paths.count < canvas.drawing.strokes.count {
+                        let original = canvas.drawing.strokes.last!
+                        
+                        curveData.data[curveData.currentDrawing!].paths.append(FFTPath(original: original))
+                        
+                        canvas.drawing.strokes.removeLast()
+                        canvas.drawing.strokes.append(curveData.data[curveData.currentDrawing!].paths.last!.getDrawablePath())
+                    }
+                })
+                    .border(Color.black)
+                    .onAppear {
+                        toolOptions.canvas = canvas
+                    }
+                
+                PathSelectionIndicator(path: $selectedCurve)
+                    .opacity(selectedCurveIndex != nil ? 1.0 : 0.0)
+                
+                Rectangle()
+                    .opacity(selectionActive ? 0.001 : 0) // makes selection code active by setting opacity of rectangle overlay to nonzero value
+                    .gesture(DragGesture(minimumDistance: 0, coordinateSpace: .local)
+                                .onEnded({ data in
+                        var minDist: [CGFloat] = [1000000, -1]
+                        for (ci, curve) in canvas.drawing.strokes.enumerated() {
+                            for point in curve.path {
+                                let d: CGFloat = sqrt(pow(point.location.x - data.location.x, 2) + pow(point.location.y - data.location.y, 2))
+                                if d < minDist[0] {
+                                    minDist = [d, CGFloat(ci)]
                                 }
-                                if minDist[1] != -1 {
-                                    selectedCurveIndex = Int(minDist[1])
-                                    selectedCurve = canvas.drawing.strokes[selectedCurveIndex!]
-                                    selectedCurveResolution = CGFloat(curveData.data[curveData.currentDrawing!].paths[selectedCurveIndex!].precision * 100)
-                                } else {
-                                    selectedCurveIndex = nil
-                                    selectedCurve = nil
-                                }
-                            }))
+                            }
+                        }
+                        if minDist[1] != -1 {
+                            selectedCurveIndex = Int(minDist[1])
+                            selectedCurve = canvas.drawing.strokes[selectedCurveIndex!]
+                            selectedCurveResolution = CGFloat(curveData.data[curveData.currentDrawing!].paths[selectedCurveIndex!].precision * 100)
+                        } else {
+                            selectedCurveIndex = nil
+                            selectedCurve = nil
+                        }
+                    }))
+            }
+            ToolPanel()
         }
             
     }

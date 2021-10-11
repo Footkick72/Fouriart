@@ -12,9 +12,11 @@ struct FouriartApp: App {
     init() {
         NotificationCenter.default.addObserver(forName: UIApplication.didFinishLaunchingNotification, object: nil, queue: .main) { _ in
             curveData.load()
+            toolOptions.load()
         }
         NotificationCenter.default.addObserver(forName: UIApplication.willTerminateNotification, object: nil, queue: .main) { _ in
             curveData.save()
+            toolOptions.save()
         }
     }
     
