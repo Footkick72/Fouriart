@@ -73,6 +73,7 @@ struct CanvasView: View {
             }
         HStack{
             ZStack {
+                ReferenceImage()
                 Canvas(canvasView: $canvas, onSaved: { // this entire logic chain depends on the fact that the PKCanvas never recieves any direct updates other than drawing strokes
                     if curveData.data[curveData.currentDrawing!].paths.count < canvas.drawing.strokes.count {
                         let original = canvas.drawing.strokes.last!
@@ -86,6 +87,7 @@ struct CanvasView: View {
                     .border(Color.black)
                     .onAppear {
                         toolOptions.canvas = canvas
+                        canvas.isOpaque = false
                     }
                 
                 PathSelectionIndicator(path: $selectedCurve)
