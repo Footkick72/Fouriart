@@ -32,4 +32,12 @@ struct FFTDrawing: Codable {
     func saveToPhotos(rect: CGRect) {
         UIImageWriteToSavedPhotosAlbum(getFullImage(rect: rect), nil, nil, nil);
     }
+    
+    mutating func addPath(_ path: FFTPath) {
+        paths.append(path)
+    }
+    
+    mutating func deletePath(at: Int) {
+        paths.remove(at: at)
+    }
 }

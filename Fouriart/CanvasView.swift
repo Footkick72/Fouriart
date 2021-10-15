@@ -48,6 +48,13 @@ struct CanvasView: View {
                     showingPhotosPermissionAlert = true
                 }
             }
+            Button("Delete Stroke") {
+                curveData.data[curveData.currentDrawing!].deletePath(at: selectedCurveIndex!)
+                canvas.drawing.strokes.remove(at: selectedCurveIndex!)
+                selectionActive = false
+                selectedCurveIndex = nil
+                selectedCurve = nil
+            }.disabled(selectedCurve == nil)
             .alert(isPresented: $showingPhotosPermissionAlert) {
                 Alert(title: Text("Unable to Save"), message: Text("Fouriart does not have permission to save photos to the camera roll"), dismissButton: .default(Text("OK")))
             }
@@ -70,7 +77,7 @@ struct CanvasView: View {
                     if curveData.data[curveData.currentDrawing!].paths.count < canvas.drawing.strokes.count {
                         let original = canvas.drawing.strokes.last!
                         
-                        curveData.data[curveData.currentDrawing!].paths.append(FFTPath(original: original))
+                        curveData.data[curveData.currentDrawing!].addPath(FFTPath(original: original))
                         
                         canvas.drawing.strokes.removeLast()
                         canvas.drawing.strokes.append(curveData.data[curveData.currentDrawing!].paths.last!.getDrawablePath())
