@@ -23,11 +23,18 @@ class CurveData: Codable, ObservableObject {
     func createNewDrawing() {
         data.append(FFTDrawing())
         currentDrawing = data.count - 1
+        save()
         objectWillChange.send()
     }
     
     func unselectDrawing() {
         currentDrawing = nil
+        save()
+        objectWillChange.send()
+    }
+    
+    func deleteDrawing(_ i: Int) {
+        data.remove(at: i)
         save()
         objectWillChange.send()
     }
