@@ -20,6 +20,7 @@ struct ToolPanel: View {
                 ToolButton(tool: tool, icon: icons[i])
             }
             DrawingThicknessSlider()
+            DrawingColorSelector()
         }
         .frame(width: 100)
     }

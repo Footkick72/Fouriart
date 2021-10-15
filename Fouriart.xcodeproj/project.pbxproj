@@ -19,6 +19,7 @@
 		1A40DEDD271313D0009109DE /* ToolButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A40DEDC271313D0009109DE /* ToolButton.swift */; };
 		1A40DEDF27132BA3009109DE /* ToolOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A40DEDE27132BA3009109DE /* ToolOptions.swift */; };
 		1A40DEE127132EE9009109DE /* DrawingThicknessSlider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A40DEE027132EE9009109DE /* DrawingThicknessSlider.swift */; };
+		1A40DEE3271A27A6009109DE /* DrawingColorSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A40DEE2271A27A6009109DE /* DrawingColorSelector.swift */; };
 		1A5F102726FAC4EA00C8F32D /* FFTPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A5F102626FAC4EA00C8F32D /* FFTPath.swift */; };
 		1A5F102926FEA02900C8F32D /* MenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A5F102826FEA02900C8F32D /* MenuView.swift */; };
 		1A5F102D27027F2B00C8F32D /* CurveData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A5F102C27027F2B00C8F32D /* CurveData.swift */; };
@@ -40,6 +41,7 @@
 		1A40DEDC271313D0009109DE /* ToolButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolButton.swift; sourceTree = "<group>"; };
 		1A40DEDE27132BA3009109DE /* ToolOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToolOptions.swift; sourceTree = "<group>"; };
 		1A40DEE027132EE9009109DE /* DrawingThicknessSlider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawingThicknessSlider.swift; sourceTree = "<group>"; };
+		1A40DEE2271A27A6009109DE /* DrawingColorSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrawingColorSelector.swift; sourceTree = "<group>"; };
 		1A5F102626FAC4EA00C8F32D /* FFTPath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFTPath.swift; sourceTree = "<group>"; };
 		1A5F102826FEA02900C8F32D /* MenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuView.swift; sourceTree = "<group>"; };
 		1A5F102C27027F2B00C8F32D /* CurveData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurveData.swift; sourceTree = "<group>"; };
@@ -83,6 +85,7 @@
 				1A40DEDA27131126009109DE /* ToolPanel.swift */,
 				1A40DEDC271313D0009109DE /* ToolButton.swift */,
 				1A40DEE027132EE9009109DE /* DrawingThicknessSlider.swift */,
+				1A40DEE2271A27A6009109DE /* DrawingColorSelector.swift */,
 				1A40DEDE27132BA3009109DE /* ToolOptions.swift */,
 				1A5F102626FAC4EA00C8F32D /* FFTPath.swift */,
 				1A5F102E2702803200C8F32D /* FFTDrawing.swift */,
@@ -183,6 +186,7 @@
 				1A40DEDD271313D0009109DE /* ToolButton.swift in Sources */,
 				1A05D7BC26F78FC200976060 /* PathSelectionIndicator.swift in Sources */,
 				1A40DED92712510C009109DE /* Extensions.swift in Sources */,
+				1A40DEE3271A27A6009109DE /* DrawingColorSelector.swift in Sources */,
 				1A2C8CEA26EE78A30015742A /* ContentView.swift in Sources */,
 				1A40DEE127132EE9009109DE /* DrawingThicknessSlider.swift in Sources */,
 				1A2C8CE826EE78A30015742A /* FouriartApp.swift in Sources */,
