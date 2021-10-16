@@ -21,6 +21,9 @@ struct CanvasView: View {
     @State var showingPhotosPermissionAlert = false
     
     @State var referenceImage: UIImage? = nil
+    @State var referenceScale: CGFloat = 1.0
+    @State var referenceOffset: CGSize = CGSize()
+    @State var referenceRotation: CGFloat = 0.0
     @State var showingReferenceSelector = false
     
     var body: some View {
@@ -79,11 +82,16 @@ struct CanvasView: View {
             }
         HStack{
             ZStack {
-                if let referenceImage = referenceImage {
-                    Image(uiImage: referenceImage)
-                        .resizable()
-                        .scaledToFit()
-                        .opacity(0.2)
+                GeometryReader() { geometry in
+                    if let referenceImage = referenceImage {
+                        Image(uiImage: referenceImage)
+                            .scaleEffect(referenceScale)
+                            .rotationEffect(Angle(degrees: referenceRotation))
+                            .offset(referenceOffset)
+                            .frame(width: geometry.size.width, height: geometry.size.height)
+                            .clipped()
+                            .opacity(0.2)
+                    }
                 }
                 
                 Canvas(canvasView: $canvas, onSaved: { // this entire logic chain depends on the fact that the PKCanvas never recieves any direct updates other than drawing strokes
@@ -101,9 +109,12 @@ struct CanvasView: View {
                         toolOptions.canvas = canvas
                         canvas.isOpaque = false
                     }
-                    .sheet(isPresented: $showingReferenceSelector) {
-                        ImagePicker(sourceType: .photoLibrary) { i in
-                            self.referenceImage = i
+                    .fullScreenCover(isPresented: $showingReferenceSelector) {
+                        ImageCropper(forgroundDrawing: canvas.drawing.image(from: canvas.bounds, scale: 3.0)) { scale, offset, rotation, image in
+                            self.referenceImage = image
+                            self.referenceScale = scale
+                            self.referenceOffset = offset
+                            self.referenceRotation = rotation
                             self.showingReferenceSelector = false
                         }
                     }
