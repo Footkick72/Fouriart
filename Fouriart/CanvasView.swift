@@ -19,7 +19,10 @@ struct CanvasView: View {
     @State var selectionActive = false
     
     @State var showingPhotosPermissionAlert = false
-
+    
+    @State var referenceImage: UIImage? = nil
+    @State var showingReferenceSelector = false
+    
     var body: some View {
         HStack {
             Button("Close Drawing") {
@@ -48,6 +51,9 @@ struct CanvasView: View {
                     showingPhotosPermissionAlert = true
                 }
             }
+            .alert(isPresented: $showingPhotosPermissionAlert) {
+                Alert(title: Text("Unable to Save"), message: Text("Fouriart does not have permission to save photos to the camera roll"), dismissButton: .default(Text("OK")))
+            }
             Button("Delete Stroke") {
                 curveData.data[curveData.currentDrawing!].deletePath(at: selectedCurveIndex!)
                 canvas.drawing.strokes.remove(at: selectedCurveIndex!)
@@ -55,8 +61,8 @@ struct CanvasView: View {
                 selectedCurveIndex = nil
                 selectedCurve = nil
             }.disabled(selectedCurve == nil)
-            .alert(isPresented: $showingPhotosPermissionAlert) {
-                Alert(title: Text("Unable to Save"), message: Text("Fouriart does not have permission to save photos to the camera roll"), dismissButton: .default(Text("OK")))
+            Button("Set Background Image") {
+                showingReferenceSelector = true
             }
         }
         Slider(value: $selectedCurveResolution, in: 0...100)
@@ -73,7 +79,13 @@ struct CanvasView: View {
             }
         HStack{
             ZStack {
-                ReferenceImage()
+                if let referenceImage = referenceImage {
+                    Image(uiImage: referenceImage)
+                        .resizable()
+                        .scaledToFit()
+                        .opacity(0.2)
+                }
+                
                 Canvas(canvasView: $canvas, onSaved: { // this entire logic chain depends on the fact that the PKCanvas never recieves any direct updates other than drawing strokes
                     if curveData.data[curveData.currentDrawing!].paths.count < canvas.drawing.strokes.count {
                         let original = canvas.drawing.strokes.last!
@@ -88,6 +100,12 @@ struct CanvasView: View {
                     .onAppear {
                         toolOptions.canvas = canvas
                         canvas.isOpaque = false
+                    }
+                    .sheet(isPresented: $showingReferenceSelector) {
+                        ImagePicker(sourceType: .photoLibrary) { i in
+                            self.referenceImage = i
+                            self.showingReferenceSelector = false
+                        }
                     }
                 
                 PathSelectionIndicator(path: $selectedCurve)
